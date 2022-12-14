@@ -11,13 +11,14 @@ datasource db {
 }
 
 model Item {
-    id       Int    @id 
+    id       String @id @default(cuid())
     name     String
-    price    Int
+    price    Int? 
     quantity Int
 }
 
 model User {
-    username String @id
+    id       Int    @id 
+    username String 
     password String
 }
