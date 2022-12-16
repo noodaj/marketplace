@@ -27,7 +27,7 @@ export const Header = ({itemCount} : HeaderProp) => {
 						<div className="flex flex-row gap-5">
 							<button
 								type="button"
-								className="rounded-lg bg-blue-400 p-1 px-5 text-blue-900"
+								className="rounded-lg bg-blue-400 p-1 px-5 text-white"
 							>
 								Sign Up
 							</button>
