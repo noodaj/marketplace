@@ -7,20 +7,22 @@ type ItemListProp = {
 
 export const ItemList = ({ items }: ItemListProp) => {
 	return (
-		<div className="">
-			<h1 className="px-56 text-2xl">Popular Products</h1>
-			<div className="row-span-4 grid grid-cols-3 place-items-center gap-3 py-3">
-				{items.map((item) => (
-					<ItemObj
-						key={Math.random() * 1000}
-						id={item.id}
-						name={item.name}
-						price={item.price !== null ? item.price : 0}
-						quantity={item.quantity}
-						image={""}
-					></ItemObj>
-				))}
+		<>
+			<h1 className="px-32 text-2xl">Popular Products</h1>
+			<div className="mx-64 my-auto flex w-lg flex-col">
+				<div className="grid grid-cols-4 place-items-center gap-6 gap-x-96 py-3">
+					{items.map((item) => (
+						<ItemObj
+							key={Math.random() * 1000}
+							id={item.id}
+							name={item.name}
+							price={item.price !== null ? item.price : 0}
+							quantity={item.quantity}
+							image={item.image !== null ? item.image : ""}
+						></ItemObj>
+					))}
+				</div>
 			</div>
-		</div>
+		</>
 	);
 };

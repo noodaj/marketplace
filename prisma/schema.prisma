@@ -6,20 +6,35 @@ generator client {
 }
 
 datasource db {
-    provider = "mysql"
-    url      = env("DATABASE_URL")
+    provider     = "mysql"
+    url          = env("DATABASE_URL")
+    relationMode = "prisma"
 }
 
 model Item {
-    id       String @id @default(cuid())
-    name     String
-    price    Int?
-    quantity Int
-    image    String?
+    id             String        @id @default(cuid())
+    name           String
+    price          Float
+    quantity       Int
+    image          String?
+    shoppingCartID String?
+    ShoppingCart   ShoppingCart? @relation(fields: [shoppingCartID], references: [id])
+
+    @@index([shoppingCartID])
 }
 
 model User {
-    id       Int    @id 
-    username String 
+    id       String @id @default(cuid())
+    username String
     password String
+    //cart     ShoppingCart?
+}
+
+model ShoppingCart {
+    id     String @id @default(cuid())
+    items  Item[]
+    userID String @unique
+    //user   User   @relation(fields: [userID], references: [id])
+
+    //@@index([userID])
 }

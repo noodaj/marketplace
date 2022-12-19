@@ -8,17 +8,25 @@ import { trpc } from "../utils/trpc";
 const Home: NextPage = () => {
 	const getItems = trpc.items.getAllItems.useQuery();
 	const [items, setItems] = useState<Item[]>([]);
+	const cart = trpc.cart.getCart.useQuery(
+		{ id: 'clbui4cc10004etsxza4m3dv8'},
+		{
+			onSuccess(data) {
+				console.log(data);
+			},
+		}
+	);
 
 	//useEffect when doing fetch requests is usually finished after the rendering of the ui
 	//dependency array uses the data queried to set the items and to rerender the ui
-	//is still done after the initial rendering of ui but we have our items now 
-	
+	//is still done after the initial rendering of ui but we have our items now
+
 	useEffect(() => {
-		if(getItems.data){
-			setItems(getItems.data)
+		if (getItems.data) {
+			setItems(getItems.data);
 		}
-	},[getItems.data])
-	
+	}, [getItems.data]);
+
 	return (
 		<>
 			<header>

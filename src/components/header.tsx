@@ -6,7 +6,7 @@ export const Header = ({itemCount} : HeaderProp) => {
 		<>
 			<div className="relative px-32">
 				<div className="top-3 flex flex-row justify-between py-5">
-					<div className="flex flex-row gap-5">
+					<div className="flex flex-row gap-5 text-xl">
 						<h3>Clothing</h3>
 						<a href="">New</a>
 						<a href="">Special Offers</a>
