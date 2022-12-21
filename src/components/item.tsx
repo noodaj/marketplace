@@ -11,20 +11,21 @@ type Props = {
 
 export const ItemObj = ({ id, name, price, quantity, image }: Props) => {
 	const itemCount = useRef<HTMLInputElement>(null);
-	let total: number = quantity;
+	//let total: number = quantity;
 	let itemID: string = id;
 	const decrementMutation = trpc.items.decrementItem.useMutation();
 	const addMutation = trpc.cart.addToCart.useMutation();
 
-	const decrementItem = () => {
+	const decrementItem = (total: number) => {
 		decrementMutation.mutate({ itemID, total });
-		return undefined;
 	};
 
 	const addToCart = () => {
 		addMutation.mutate({
+			cartID: "clbvzbkcf0010ethei8ez5r4h",
+			quantity: Number(itemCount.current?.value),
+			itemID: id,
 			userID: "",
-			item: { name, price, quantity, image },
 		});
 	};
 	return (
@@ -39,8 +40,9 @@ export const ItemObj = ({ id, name, price, quantity, image }: Props) => {
 			<div className="flex justify-evenly py-1">
 				<button
 					onClick={() => {
-						total = total - Number(itemCount.current?.value);
-						decrementItem();
+						decrementItem(
+							quantity - Number(itemCount.current?.value)
+						);
 						addToCart();
 					}}
 				>

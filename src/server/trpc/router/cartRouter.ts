@@ -6,69 +6,81 @@ export const CartRouter = router({
 		.input(
 			z.object({
 				userID: z.string(),
-				item: z.object({
-					name: z.string(),
-					price: z.number(),
-					quantity: z.number(),
-					image: z.string(),
-				}),
+				itemID: z.string(),
+				quantity: z.number(),
+				cartID: z.string().nullable(),
 			})
 		)
 		.mutation(async ({ input, ctx }) => {
-			const { userID, item } = input;
-			const { name, price, quantity, image } = item;
+			//get the cartID which is the same as the userID
+			//then we can find the cart with this uniqueID
+			//if it doesnt exist we will create a new cart with the userID passed in and connect the itemID to this cart
+			//if it exists we will just connect the item to the cart
+			//return the cart
+			const { userID, itemID, quantity, cartID } = input;
 			const cart = await ctx.prisma.shoppingCart.findFirst({
-				where: { id: userID },
+				where: { id: cartID! },
 			});
-			if (cart == null) {
-				const newCart = await ctx.prisma.shoppingCart.create({
+			if (cart === null) {
+				await ctx.prisma.shoppingCart.create({
 					data: {
-						id: userID,
+						userID: userID,
 						items: {
 							create: {
-								name: name,
-								price: price,
 								quantity: quantity,
-								image: image,
+								item: { connect: { id: itemID } },
 							},
 						},
-						userID: "",
 					},
+					include: { items: true },
 				});
-
-				return newCart;
 			} else {
-				const updatedCart = await ctx.prisma.shoppingCart.update({
-					where: { id: userID },
+				await ctx.prisma.shoppingCart.update({
+					where: { id: cartID! },
 					data: {
 						items: {
-							update: {
-								where: { id: userID },
-								data: {
-									name: name,
-									price: price,
-									quantity: quantity,
-									image: image,
-								},
+							create: {
+								quantity: quantity,
+								item: { connect: { id: itemID } },
 							},
 						},
 					},
+					include: { items: true },
 				});
-
-				return updatedCart;
 			}
+
+			return ctx.prisma.shoppingCart.findFirst({
+				where: { userID: userID },
+				include: { items: true },
+			});
 		}),
 
 	getCart: publicProcedure
-		.input(z.object({ id: z.string() }))
+		.input(z.object({ cartID: z.string() }))
 		.query(async ({ input, ctx }) => {
-			const { id } = input;
+			const { cartID } = input;
 			const cart = await ctx.prisma.shoppingCart.findFirst({
-				where: { id : id},
+				where: { id: cartID },
+				include: { items: { include: { item: true } } },
+			});
+			
+			return cart?.items;
+		}),
+
+	deleteCart: publicProcedure
+		.input(z.object({ cartID: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			const { cartID } = input;
+			const cart = await ctx.prisma.shoppingCart.delete({
+				where: { id: cartID },
 			});
 
 			return cart;
 		}),
 
-	//removeFromCart: publicProcedure.mutation()
+	deleteItem: publicProcedure
+		.input(z.object({ itemID: z.string(), cartID: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			return;
+		}),
 });

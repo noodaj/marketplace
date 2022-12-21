@@ -1,4 +1,6 @@
+import { contextProps } from "@trpc/react-query/dist/internals/context";
 import { z } from "zod";
+import { trpc } from "../../../utils/trpc";
 import { router, publicProcedure } from "../trpc";
 
 //input is created from z object passing in the name price and quantity
@@ -72,13 +74,23 @@ export const ItemsRouter = router({
 				where: {
 					id: itemID,
 				},
-				data: { 
+				data: {
 					name: name,
 					price: price,
 					quantity: quantity,
 					image: image,
 				},
 			});
-			return item
+			return item;
+		}),
+
+	getItem: publicProcedure
+		.input(z.object({ itemID: z.string() }))
+		.query(async ({ input, ctx }) => {
+			const { itemID } = input;
+			const item = await ctx.prisma.item.findUnique({
+				where: { id: itemID },
+			});
+			return item;
 		}),
 });

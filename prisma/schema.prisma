@@ -11,30 +11,39 @@ datasource db {
     relationMode = "prisma"
 }
 
+//each item can be in a item quantity
 model Item {
-    id             String        @id @default(cuid())
-    name           String
-    price          Float
-    quantity       Int
-    image          String?
-    shoppingCartID String?
-    ShoppingCart   ShoppingCart? @relation(fields: [shoppingCartID], references: [id])
-
-    @@index([shoppingCartID])
+    id           String         @id @default(cuid())
+    name         String
+    price        Float
+    quantity     Int
+    image        String?
+    ItemQuantity ItemQuantity[]
 }
 
 model User {
-    id       String @id @default(cuid())
+    id       String        @id @default(cuid())
     username String
     password String
-    //cart     ShoppingCart?
+    cart     ShoppingCart?
 }
 
 model ShoppingCart {
-    id     String @id @default(cuid())
-    items  Item[]
-    userID String @unique
-    //user   User   @relation(fields: [userID], references: [id])
+    id     String         @id @default(cuid())
+    items  ItemQuantity[]
+    userID String         @unique
+    user   User?          @relation(fields: [userID], references: [id])
+}
 
-    //@@index([userID])
+model ItemQuantity {
+    id             String        @id @default(cuid())
+    quantity       Int
+    itemID         String?
+    itemName       String        @default("")
+    item           Item?         @relation(fields: [itemID], references: [id])
+    shoppingCartId String?
+    ShoppingCart   ShoppingCart? @relation(fields: [shoppingCartId], references: [id])
+
+    @@index([shoppingCartId])
+    @@index([itemID])
 }

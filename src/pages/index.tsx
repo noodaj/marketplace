@@ -8,13 +8,10 @@ import { trpc } from "../utils/trpc";
 const Home: NextPage = () => {
 	const getItems = trpc.items.getAllItems.useQuery();
 	const [items, setItems] = useState<Item[]>([]);
+
+	//get id from user
 	const cart = trpc.cart.getCart.useQuery(
-		{ id: 'clbui4cc10004etsxza4m3dv8'},
-		{
-			onSuccess(data) {
-				console.log(data);
-			},
-		}
+		{ cartID: "clbvzbkcf0010ethei8ez5r4h" },
 	);
 
 	//useEffect when doing fetch requests is usually finished after the rendering of the ui
@@ -36,7 +33,7 @@ const Home: NextPage = () => {
 			</header>
 
 			<main className="base">
-				<Header itemCount={items.length} />
+				<Header itemCount={cart.data?.length ?? 0} />
 				<ItemList items={items}></ItemList>
 			</main>
 		</>
