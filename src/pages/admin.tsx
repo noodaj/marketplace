@@ -1,10 +1,11 @@
 import { Item } from "@prisma/client";
-import { NextPage } from "next";
+import { NextPage, GetServerSideProps } from "next";
 import { useEffect, useState } from "react";
 import { OpenModal } from "../components/openModal";
 import { trpc } from "../utils/trpc";
 import { HiOutlinePencil, HiOutlineX } from "react-icons/hi";
 import { EditModal } from "../components/editModal";
+import { getSession } from "next-auth/react";
 
 const AdminPage: NextPage = () => {
 	const [openModal, setOpenModal] = useState<boolean>(false);
@@ -112,3 +113,18 @@ const AdminPage: NextPage = () => {
 };
 
 export default AdminPage;
+
+export const getServerSideProps: GetServerSideProps = async ({req}) => {
+	const session = await getSession({req})
+	if(!session){
+		return {
+			redirect: {
+				destination: '/signin',
+				permanent: false
+			}
+		}
+	}
+	return{
+		props: {session}
+	}
+}

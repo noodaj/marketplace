@@ -16,9 +16,9 @@ export const ItemList = ({ items }: ItemListProp) => {
 							key={Math.random() * 1000}
 							id={item.id}
 							name={item.name}
-							price={item.price !== null ? item.price : 0}
+							price={item.price}
 							quantity={item.quantity}
-							image={item.image !== null ? item.image : ""}
+							image={item.image || ""}
 						></ItemObj>
 					))}
 				</div>
