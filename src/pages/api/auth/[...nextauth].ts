@@ -1,19 +1,9 @@
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { PrismaClient } from "@prisma/client";
 import nextAuth, { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { env } from "../../../env/server.mjs";
-import { prisma } from "../../../server/db/client";
 
+const prisma = new PrismaClient();
 export const authOptions: NextAuthOptions = {
-	callbacks: {
-		session({ session, user }) {
-			if (session.user) {
-				session.user.id = user.id;
-			}
-			return session;
-		},
-	},
-	adapter: PrismaAdapter(prisma),
 	providers: [
 		Credentials({
 			type: "credentials",
@@ -29,12 +19,11 @@ export const authOptions: NextAuthOptions = {
 				});
 
 				if (user) {
-					if (user.password == password) {
+					if (user.password === password) {
 						return user;
 					}
 				}
 				return null;
-				//throw new Error();
 			},
 		}),
 	],

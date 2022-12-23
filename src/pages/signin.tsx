@@ -14,9 +14,9 @@ const SignIn: NextPage = () => {
 		const user = await signIn("credentials", {
 			username: userRef.current?.value,
 			password: passRef.current?.value,
-			redirect: false,
+			redirect: true,
+			callbackUrl: "/",
 		});
-		console.log(user)
 	};
 
 	return (
