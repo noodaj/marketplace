@@ -9,30 +9,25 @@ import { trpc } from "../utils/trpc";
 const Home: NextPage = () => {
 	const getItems = trpc.items.getAllItems.useQuery();
 	const [items, setItems] = useState<Item[]>([]);
-	const { data: session } = useSession();
+	const {data: session, status} = useSession()
+
+	if(session){
+		console.log(session.user, status)
+	}
+	//get id from user
+	const cart = trpc.cart.getCart.useQuery(
+		{ cartID: "clbvzbkcf0010ethei8ez5r4h" },
+	);
 
 	//useEffect when doing fetch requests is usually finished after the rendering of the ui
 	//dependency array uses the data queried to set the items and to rerender the ui
 	//is still done after the initial rendering of ui but we have our items now
-
+		
 	useEffect(() => {
 		if (getItems.data) {
 			setItems(getItems.data);
 		}
 	}, [getItems.data]);
-
-	/*
-	const itemCount = () => {
-		let count: number = 0;
-		if (session) {
-			count =
-				trpc.cart.getCart.useQuery({ cartID: session.userID }).data
-					?.length ?? 0;
-			console.log(count);
-		}
-		return count;
-	};
-	*/
 	
 	return (
 		<>
@@ -43,18 +38,8 @@ const Home: NextPage = () => {
 			</header>
 
 			<main className="base">
-				{session && (
-					<div>
-						<Header itemCount={0} />
-						<ItemList items={items}></ItemList>
-					</div>
-				)}
-				{!session && (
-					<div>
-						<Header itemCount={0} />
-						<ItemList items={items}></ItemList>
-					</div>
-				)}
+				<Header itemCount={cart.data?.length ?? 0} />
+				<ItemList items={items}></ItemList>
 			</main>
 		</>
 	);

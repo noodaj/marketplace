@@ -1,9 +1,29 @@
-import { PrismaClient } from "@prisma/client";
-import nextAuth, { NextAuthOptions } from "next-auth";
+import { PrismaClient, User } from "@prisma/client";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
 const prisma = new PrismaClient();
+let userAcct: User;
+
 export const authOptions: NextAuthOptions = {
+	session: {
+		strategy: "jwt",
+		maxAge: 30 * 24 * 60 * 60,
+	},
+	callbacks: {
+		session: async ({ session, token }) => {
+			session.userID = token.user.id;
+			session.user!.name = token.user.name;
+			session.user!.image = token.user.image;
+			return session;
+		},
+		jwt: async ({ token, user, account, profile, isNewUser }) => {
+			if (user) {
+				token.user = userAcct;
+			}
+			return token;
+		},
+	},
 	providers: [
 		Credentials({
 			type: "credentials",
@@ -20,6 +40,7 @@ export const authOptions: NextAuthOptions = {
 
 				if (user) {
 					if (user.password === password) {
+						userAcct = user;
 						return user;
 					}
 				}
@@ -33,4 +54,4 @@ export const authOptions: NextAuthOptions = {
 	},
 };
 
-export default nextAuth(authOptions);
+export default NextAuth(authOptions);

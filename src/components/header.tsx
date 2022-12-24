@@ -59,7 +59,6 @@ const user = ({ userName, pfp }: UserProps) => {
 	return (
 		<div className="flex flex-row gap-5">
 			<div className="flex items-center justify-center gap-4">
-				<h1>Welcome {userName}</h1>
 				<img className="h-10 w-10 rounded-full " src={pfp}></img>
 			</div>
 		</div>
