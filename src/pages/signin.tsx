@@ -1,29 +1,37 @@
 import { NextPage } from "next";
 import { signIn } from "next-auth/react";
-import { redirect } from "next/dist/server/api-utils";
-import { FormEventHandler, useRef } from "react";
+import Router from "next/router";
+import { FormEventHandler, useRef, useState } from "react";
 import { Header } from "../components/header";
-import { authOptions } from "./api/auth/[...nextauth]";
 
 const SignIn: NextPage = () => {
 	const userRef = useRef<HTMLInputElement>(null);
 	const passRef = useRef<HTMLInputElement>(null);
+	const [invalidCred, showInvalidCred] = useState<boolean>(false)
 
 	const auth: FormEventHandler<HTMLFormElement> = async (e) => {
 		e.preventDefault();
 		const user = await signIn("credentials", {
 			username: userRef.current?.value,
 			password: passRef.current?.value,
-			redirect: true,
+			redirect: false,
 			callbackUrl: "/",
 		});
+
+		if(user?.error == "CredentialsSignin"){
+			showInvalidCred(true)
+		}
+		else{
+			Router.push('/')
+		}
 	};
 
 	return (
 		<div className="base">
-			<Header itemCount={0}></Header>
+			<Header></Header>
 			<div className="m-auto my-48 flex w-64 flex-col items-center justify-center gap-5 rounded-md border-2 border-black bg-white py-11">
 				<h1 className="text-2xl font-semibold">Login</h1>
+				{invalidCred && <p className="text-red-600">Invalid credentials</p>}
 				<form className="flex flex-col gap-4" onSubmit={auth}>
 					<input
 						className="rounded-md border-2 border-slate-400 px-2"

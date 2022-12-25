@@ -37,12 +37,13 @@ export const ItemsRouter = router({
 		.input(z.object({ itemID: z.string(), total: z.number() }))
 		.mutation(async ({ input, ctx }) => {
 			const { itemID, total } = input;
+			console.log(total)
 			const item = await ctx.prisma.item.update({
 				where: {
 					id: itemID,
 				},
 				data: {
-					quantity: total >= 0 ? total : 0,
+					quantity: total
 				},
 			});
 			return item;

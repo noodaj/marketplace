@@ -14,26 +14,12 @@ const Home: NextPage = () => {
 	//useEffect when doing fetch requests is usually finished after the rendering of the ui
 	//dependency array uses the data queried to set the items and to rerender the ui
 	//is still done after the initial rendering of ui but we have our items now
-
 	useEffect(() => {
 		if (getItems.data) {
 			setItems(getItems.data);
 		}
 	}, [getItems.data]);
 
-	/*
-	const itemCount = () => {
-		let count: number = 0;
-		if (session) {
-			count =
-				trpc.cart.getCart.useQuery({ cartID: session.userID }).data
-					?.length ?? 0;
-			console.log(count);
-		}
-		return count;
-	};
-	*/
-	
 	return (
 		<>
 			<header>
@@ -45,13 +31,14 @@ const Home: NextPage = () => {
 			<main className="base">
 				{session && (
 					<div>
-						<Header itemCount={0} />
+						<Header
+						/>
 						<ItemList items={items}></ItemList>
 					</div>
 				)}
 				{!session && (
 					<div>
-						<Header itemCount={0} />
+						<Header />
 						<ItemList items={items}></ItemList>
 					</div>
 				)}

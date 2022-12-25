@@ -1,17 +1,15 @@
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useState } from "react";
+import { FC, useState } from "react";
+import { trpc } from "../utils/trpc";
 
-type HeaderProp = {
-	itemCount: number;
-};
+export const Header: FC = () => {
+	const { data: session } = useSession();
+	const [showDropdown, setDropdown] = useState<boolean>(false);
 
-type UserProps = {
-	userName: string;
-	pfp: string;
-};
-export const Header = ({ itemCount }: HeaderProp) => {
-	const {data: session} = useSession()
+	const defaultUser = 'clc2y9alu0002etodpyit1tmm'
+	let cart = trpc.cart.getCart.useQuery({ cartID: session?.userID ?? defaultUser })
+
 	return (
 		<>
 			<div className="relative px-32">
@@ -23,66 +21,85 @@ export const Header = ({ itemCount }: HeaderProp) => {
 						<a href="">New</a>
 						<a href="">Special Offers</a>
 					</div>
-
 					<div className="flex flex-row">
-						<div className="flex flex-row px-8 hover:cursor-pointer">
-							<Link href="/cart">
-								<img
-									className="px-2"
-									src="shoppingCart.png"
-									alt="shoppingCart image"
-								></img>
-							</Link>
-
-							<div className="flex h-0.5 flex-col">
-								<p>
-									My <Link href="/cart">Cart</Link>
-								</p>
-								<Link href="/cart">{`${itemCount} items`}</Link>
-							</div>
-						</div>
-
-						{session
-							? user({
-									userName: "test",
-									pfp: "profilePic.png",
-							  })
-							: guest()}
+						{session ? (
+							<>
+								<Link href="/cart">
+									<div className="flex flex-row px-8 hover:cursor-pointer">
+										<img
+											className="px-2"
+											src="shoppingCart.png"
+											alt="shoppingCart image"
+										></img>
+										<div className="flex h-0.5 flex-col">
+											<p>My Cart</p>
+											{cart.isSuccess && <>{`${cart.data?.length} items`}</>}
+										</div>
+									</div>
+								</Link>
+								<div className="flex flex-row gap-5 ">
+									<div className="hover: flex cursor-pointer items-center justify-center gap-4">
+										<img
+											className="h-10 w-10 rounded-full "
+											src={
+												session.user?.image ||
+												"/profilePic.png"
+											}
+											onClick={() =>
+												setDropdown(!showDropdown)
+											}
+										></img>
+									</div>
+									{showDropdown && (
+										<div
+											className="absolute right-28 my-12 flex h-14 items-center rounded-md bg-sky-400 p-3 hover:cursor-pointer"
+											onClick={() => signOut()}
+										>
+											Logout
+										</div>
+									)}
+								</div>
+							</>
+						) : (
+							<>
+								<div className="flex flex-row px-8 hover:cursor-pointer">
+									<Link href="/cart">
+										<img
+											className="px-2"
+											src="shoppingCart.png"
+											alt="shoppingCart image"
+										></img>
+									</Link>
+									<div className="flex h-0.5 flex-col">
+										<p>
+											My <Link href="/cart">Cart</Link>
+										</p>
+										<Link href="/cart">{`0 items`}</Link>
+									</div>
+								</div>
+								<div className="flex flex-row gap-5">
+									<Link href="/createAcct">
+										<button
+											type="button"
+											className="rounded-lg bg-blue-400 p-2 px-5 text-white"
+										>
+											Sign Up
+										</button>
+									</Link>
+									<Link href="/signin">
+										<button
+											type="button"
+											className="rounded-lg bg-blue-500 p-2 px-5 text-white"
+										>
+											Log In
+										</button>
+									</Link>
+								</div>
+							</>
+						)}
 					</div>
 				</div>
 			</div>
 		</>
-	);
-};
-
-const user = ({ userName, pfp }: UserProps) => {
-	return (
-		<div className="flex flex-row gap-5">
-			<div className="flex items-center justify-center gap-4">
-				<img className="h-10 w-10 rounded-full " src={pfp}></img>
-			</div>
-		</div>
-	);
-};
-const guest = () => {
-	return (
-		<div className="flex flex-row gap-5">
-			<Link href="/createAcct">
-				<button
-					type="button"
-					className="rounded-lg bg-blue-400 p-2 px-5 text-white"
-				>
-					Sign Up
-				</button>
-			</Link>
-			<Link href="/signin">
-				<button
-					type="button"
-					className="rounded-lg bg-blue-500 p-2 px-5 text-white"
-				>
-					Log In
-				</button>
-			</Link>
-		</div>
 	);
 };

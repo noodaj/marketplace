@@ -8,7 +8,7 @@ let userAcct: User;
 export const authOptions: NextAuthOptions = {
 	session: {
 		strategy: "jwt",
-		maxAge: 30 * 24 * 60 * 60,
+		maxAge: 60 * 10
 	},
 	callbacks: {
 		session: async ({ session, token }) => {

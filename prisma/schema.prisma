@@ -32,7 +32,6 @@ model ItemQuantity {
     id             String        @id @default(cuid())
     quantity       Int
     itemID         String?
-    itemName       String        @default("")
     item           Item?         @relation(fields: [itemID], references: [id])
     shoppingCartId String?
     ShoppingCart   ShoppingCart? @relation(fields: [shoppingCartId], references: [id])
