@@ -17,7 +17,8 @@ export const authOptions: NextAuthOptions = {
 			session.user!.image = token.user.image;
 			return session;
 		},
-		jwt: async ({ token, user, account, profile, isNewUser }) => {
+
+		jwt: async ({ token, user }) => {
 			if (user) {
 				token.user = userAcct;
 			}

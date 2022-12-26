@@ -2,10 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-.base{
-    @apply min-h-screen bg-gradient-to-b from-[#0f8aa0] to-[#112386ec] font-semibold
+.base {
+	@apply min-h-screen bg-gradient-to-b from-[#0f8aa0] to-[#112386ec] font-semibold;
 }
 
-.addItemBase{
-    @apply border-slate-300 bg-slate-200 rounded-md px-2 
+.addItemBase {
+	@apply rounded-md border-slate-300 bg-slate-200 px-2;
+}
+
+.paymentText {
+	@apply flex justify-between text-yellow-500 text-sm;
 }

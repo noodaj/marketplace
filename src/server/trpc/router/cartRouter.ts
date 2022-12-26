@@ -17,19 +17,41 @@ export const CartRouter = router({
 			//if it exists we will just connect the item to the cart
 			//return the cart
 			const { itemID, quantity, uID } = input;
-			await ctx.prisma.shoppingCart.update({
-				where: { userID: uID },
-				data: {
-					items: {
-						create: {
-							quantity: quantity,
-							item: { connect: { id: itemID } },
+			const item = await ctx.prisma.shoppingCart.findFirst({
+				where: {AND: [{userID: uID}, {items: {some: {itemID: itemID}}}]},
+				include: {items: {where: {itemID: itemID}}}
+			})
+
+			if (item) {
+				
+				await ctx.prisma.shoppingCart.update({
+					where: { userID: uID },
+					data: {
+						items: {
+							update: {
+								where: { id: item.items[0]?.id },
+								data: { quantity: item.items[0]!.quantity + quantity},
+							},
 						},
 					},
-				},
-				include: { items: true },
-			});
-
+					include: {items: true}
+				});
+				
+			} else {
+				await ctx.prisma.shoppingCart.update({
+					where: { userID: uID },
+					data: {
+						items: {
+							create: {
+								quantity: quantity,
+								item: { connect: { id: itemID } },
+							},
+						},
+					},
+					include: { items: true },
+				});
+			}
+			
 			return ctx.prisma.shoppingCart.findFirst({
 				where: { userID: uID },
 				include: { items: true },

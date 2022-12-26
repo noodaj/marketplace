@@ -1,5 +1,6 @@
 import { useSession } from "next-auth/react";
-import { FC, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
+import { env } from "../env/client.mjs";
 import { trpc } from "../utils/trpc";
 
 type Props = {
@@ -16,12 +17,17 @@ export const ItemObj: FC<Props> = ({ id, name, price, quantity, image }) => {
 	const decrementMutation = trpc.items.decrementItem.useMutation();
 	const addMutation = trpc.cart.addToCart.useMutation();
 	const { data: session } = useSession();
+
+	useEffect(() => {
+
+	}, [addMutation.isSuccess])
+	
 	const addToCart = () => {
 		if (Number(itemCount.current?.value) > 0) {
 			addMutation.mutate({
 				itemID: id,
 				quantity: Number(itemCount.current?.value),
-				uID: session!.userID,
+				uID: session?.userID || env.NEXT_PUBLIC_DEFAULT_USER,
 			});
 
 			decrementMutation.mutate({
@@ -40,7 +46,11 @@ export const ItemObj: FC<Props> = ({ id, name, price, quantity, image }) => {
 				></img>
 				<p>{`${name} $${price.toFixed(2)}`}</p>
 			</div>
-			{invalidCount && <p className="flex justify-center text-red-600">Invalid Count</p>}
+			{invalidCount && (
+				<p className="flex justify-center text-red-600">
+					Invalid Count
+				</p>
+			)}
 			<div className="flex justify-evenly py-1">
 				<button
 					onClick={() => {
@@ -48,7 +58,7 @@ export const ItemObj: FC<Props> = ({ id, name, price, quantity, image }) => {
 							setInvalidCount(true);
 						} else {
 							addToCart();
-							setInvalidCount(false)
+							setInvalidCount(false);
 						}
 					}}
 				>
@@ -58,7 +68,7 @@ export const ItemObj: FC<Props> = ({ id, name, price, quantity, image }) => {
 					type={"number"}
 					ref={itemCount}
 					placeholder="0"
-					className="w-1/6 rounded-md border-2 border-gray-600"
+					className="w-1/6 rounded-md border border-black outline-none"
 				></input>
 			</div>
 		</div>
