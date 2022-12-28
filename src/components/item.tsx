@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { FC, useEffect, useRef, useState } from "react";
+import { Dispatch, FC, SetStateAction, useRef, useState } from "react";
 import { env } from "../env/client.mjs";
 import { trpc } from "../utils/trpc";
 
@@ -9,26 +9,28 @@ type Props = {
 	price: number;
 	quantity: number;
 	image: string;
+	setLength: Dispatch<SetStateAction<number>>
 };
 
-export const ItemObj: FC<Props> = ({ id, name, price, quantity, image }) => {
+export const ItemObj: FC<Props> = ({ id, name, price, quantity, image, setLength }) => {
 	const itemCount = useRef<HTMLInputElement>(null);
 	const [invalidCount, setInvalidCount] = useState<boolean>(false);
 	const decrementMutation = trpc.items.decrementItem.useMutation();
 	const addMutation = trpc.cart.addToCart.useMutation();
 	const { data: session } = useSession();
 
-	useEffect(() => {
-
-	}, [addMutation.isSuccess])
-	
 	const addToCart = () => {
 		if (Number(itemCount.current?.value) > 0) {
-			addMutation.mutate({
-				itemID: id,
-				quantity: Number(itemCount.current?.value),
-				uID: session?.userID || env.NEXT_PUBLIC_DEFAULT_USER,
-			});
+			addMutation.mutate(
+				{
+					itemID: id,
+					quantity: Number(itemCount.current?.value),
+					uID: session?.userID || env.NEXT_PUBLIC_DEFAULT_USER,
+				},
+				{onSuccess(data){
+					setLength(data?.items.length!)
+				}}
+			);
 
 			decrementMutation.mutate({
 				itemID: id,

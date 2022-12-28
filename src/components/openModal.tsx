@@ -4,15 +4,10 @@ import { trpc } from "../utils/trpc";
 
 type ModalProps = {
 	setState: Dispatch<SetStateAction<boolean>>;
-	setItems: Dispatch<SetStateAction<Item[]>>;
-	items: Item[];
 };
 
-export const OpenModal = ({ setState, setItems, items }: ModalProps) => {
+export const OpenModal = ({ setState}: ModalProps) => {
 	const addItemRouter = trpc.items.addItems.useMutation({
-		onSuccess(data) {
-			setItems([...items, data]);
-		},
 	});
 	
 	const itemName = useRef() as MutableRefObject<HTMLInputElement>;

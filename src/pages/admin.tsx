@@ -47,8 +47,6 @@ const AdminPage: NextPage = () => {
 			{openModal && (
 				<OpenModal
 					setState={setOpenModal}
-					setItems={setItems}
-					items={items}
 				></OpenModal>
 			)}
 			{editModal && (

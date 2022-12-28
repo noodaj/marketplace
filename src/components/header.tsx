@@ -1,18 +1,14 @@
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { FC, useState } from "react";
-import { env } from "../env/client.mjs";
-import { trpc } from "../utils/trpc";
 
-export const Header: FC = () => {
+type Props = {
+	itemCount: number
+}
+export const Header: FC<Props> = ({itemCount}) => {
 	const { data: session } = useSession();
 	const [showDropdown, setDropdown] = useState<boolean>(false);
-
-	const defaultUser = env.NEXT_PUBLIC_DEFAULT_USER;
-	let cart = trpc.cart.getCart.useQuery({
-		cartID: session?.userID ?? defaultUser,
-	});
-
+	
 	return (
 		<>
 			<div className="relative px-32">
@@ -40,9 +36,7 @@ export const Header: FC = () => {
 										></img>
 										<div className="flex h-0.5 flex-col">
 											<p>My Cart</p>
-											{cart.isSuccess && (
-												<>{`${cart.data?.length} items`}</>
-											)}
+											<>{`${itemCount} items`}</>
 										</div>
 									</div>
 								</Link>
@@ -83,7 +77,7 @@ export const Header: FC = () => {
 										<p>
 											My <Link href="/cart">Cart</Link>
 										</p>
-										<Link href="/cart">{`${cart.data?.length} items`}</Link>
+										<Link href="/cart">{`${itemCount} items`}</Link>
 									</div>
 								</div>
 								<div className="flex flex-row gap-5">

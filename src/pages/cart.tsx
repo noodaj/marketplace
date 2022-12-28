@@ -1,52 +1,106 @@
-import { Item } from "@prisma/client";
 import { NextPage } from "next";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { HiOutlineTrash } from "react-icons/hi";
 import { Header } from "../components/header";
 import { env } from "../env/client.mjs";
 import { trpc } from "../utils/trpc";
 
 const ShoppingCart: NextPage = () => {
+	const deleteItem = trpc.cart.deleteItem.useMutation();
+	const updateItem = trpc.cart.updateItemCount.useMutation();
+	const utils = trpc.useContext();
 	const { data: session } = useSession();
 	const [checked, setChecked] = useState<boolean>(false);
-	const [curItem, setItems] = useState<Item[]>([]);
-	const items = trpc.cart.getCart.useQuery(
+	const [cartLength, setCartLength] = useState<number>(0);
+	const [total, setTotal] = useState<{
+		tax: number;
+		itemTotal: number;
+		overall: number;
+	}>({ itemTotal: 0, overall: 0, tax: 0 });
+	const quantityRef = useRef<HTMLInputElement>(null);
+
+	const cart = trpc.cart.getCart.useQuery(
 		{
 			cartID: session?.userID || env.NEXT_PUBLIC_DEFAULT_USER,
 		},
 		{
 			onSuccess(data) {
-				data?.forEach((item) => {
-					setItems([...curItem, item.item!]);
-					console.log(item)
-				});
+				setCartLength(data!.length);
+				getTotal(data)
 			},
 		}
 	);
 
-	let getTotal = () => {
+	const deleteFn = (itemID: string) => {
+		deleteItem.mutate(
+			{
+				uID: session?.userID || env.NEXT_PUBLIC_DEFAULT_USER,
+				itemID: itemID,
+			},
+			{
+				onSuccess(data) {
+					utils.cart.getCart.setData(
+						{
+							cartID:
+								session?.userID || env.NEXT_PUBLIC_DEFAULT_USER,
+						},
+						data.items.flat()
+					);
+					setCartLength(data.items.length);
+				},
+			}
+		);
+	};
+
+	const update = (item: string) => {
+		updateItem.mutate(
+			{
+				itemID: item,
+				quantity: Number(quantityRef.current?.value),
+				uID: session?.userID ?? env.NEXT_PUBLIC_DEFAULT_USER,
+			},
+			{
+				onSuccess(data) {
+					utils.cart.getCart.setData(
+						{
+							cartID:
+								session?.userID ?? env.NEXT_PUBLIC_DEFAULT_USER,
+						},
+						data.items.flat()
+					);
+				},
+			}
+		);
+	};
+
+	const getTotal = (data: any) => {
 		let itemTotal = 0;
-		items.data?.forEach((item) => {
+		data?.forEach((item) => {
 			itemTotal += item.item!.price * item.quantity;
 		});
 
-		let tax = Number((itemTotal * 0.0875).toFixed(2));
-		let total = itemTotal + tax + (checked ? 10 : 0);
-		return { itemTotal, tax, total };
+		let tax = itemTotal * 0.0875;
+		let total = itemTotal + Number(tax) + (checked ? 10 : 0);
+
+		console.log({itemTotal,tax, total})
+		setTotal({itemTotal: itemTotal, tax: tax, overall: total})
 	};
 
-	let deleteItem = () => {};
 	return (
 		<>
+			<header>
+				<title>Cart</title>
+				<link rel="icon" href="favicon.ico"></link>
+			</header>
 			<div className="base">
-				<Header></Header>
+				<Header itemCount={cartLength}></Header>
 				<div className="mx-32 h-[calc(100%_-_8rem)] rounded-md">
 					<h1 className="text-lg">Order</h1>
 					<div className="grid grid-cols-3">
-						{items.isSuccess && (
+						{cart.isSuccess && cart.data!.length > 0 ? (
 							<div className="col-span-2 min-h-[30rem] divide-slate-300/80">
-								{items.data?.map((item) => (
+								{cart.data?.map((item) => (
 									<div
 										key={Math.random() * 100}
 										className="grid max-w-7xl grid-cols-2 p-4"
@@ -65,18 +119,30 @@ const ShoppingCart: NextPage = () => {
 													Quantity:
 												</p>
 												<input
-													type={"number"}
+													type={"text"}
 													placeholder={item.quantity.toString()}
 													className="w-11 rounded border border-black px-1 outline-0"
+													ref={quantityRef}
+													onChange={() => {
+														update(item.itemID!);
+														getTotal();
+													}}
 												></input>
 											</div>
 											<HiOutlineTrash
 												className="text-2xl hover:cursor-pointer "
-												onClick={deleteItem}
+												onClick={() => {
+													deleteFn(item.itemID!);
+													getTotal();
+												}}
 											/>
 										</div>
 									</div>
 								))}
+							</div>
+						) : (
+							<div className="col-span-2 min-h-[30rem] w-96">
+								{`Your cart is empty :(`}
 							</div>
 						)}
 						<div className="col-span-1">
@@ -95,7 +161,7 @@ const ShoppingCart: NextPage = () => {
 									<div className="flex flex-col gap-2">
 										<div className="paymentText">
 											<p>Order Summary</p>
-											{`$${getTotal().itemTotal}`}
+											{`$${total.itemTotal}`}
 										</div>
 										<div className="paymentText">
 											<p>Additional Services</p>
@@ -103,11 +169,11 @@ const ShoppingCart: NextPage = () => {
 										</div>
 										<div className="paymentText">
 											<p>Tax</p>
-											{`$${getTotal().tax}`}
+											{`$${(total.tax).toFixed(2)}`}
 										</div>
 										<div className="paymentText">
 											<p>Total</p>
-											{`$${getTotal().total}`}
+											{`$${(total.overall).toFixed(2)}`}
 										</div>
 									</div>
 								</div>
@@ -121,7 +187,7 @@ const ShoppingCart: NextPage = () => {
 											<p>$10.00</p>
 											<input
 												type={"checkbox"}
-												className="rounded-md outline-none hover:cursor-pointer"
+												className="rounded-full outline-none hover:cursor-pointer"
 												defaultChecked={false}
 												onChange={() =>
 													setChecked(!checked)
@@ -132,7 +198,19 @@ const ShoppingCart: NextPage = () => {
 								</div>
 							</div>
 						</div>
-						<div className="col-span-2 text-xl">Delivery</div>
+						<div className="col-span-2  text-xl">
+							Delivery
+							<div className="grid grid-cols-2">
+								<div>
+									<p className="text-base">
+										FedEx Fast Delivery
+									</p>
+								</div>
+								<div>
+									<p className="text-base">UPS Delivery</p>
+								</div>
+							</div>
+						</div>
 						<div className="col-span-3 text-xl">Payment</div>
 					</div>
 				</div>

@@ -1,16 +1,18 @@
 import { Item } from "@prisma/client";
+import { Dispatch, SetStateAction } from "react";
 import { ItemObj } from "./item";
 
 type ItemListProp = {
 	items: Item[];
+	setLength: Dispatch<SetStateAction<number>>
 };
 
-export const ItemList = ({ items }: ItemListProp) => {
+export const ItemList = ({ items, setLength }: ItemListProp) => {
 	return (
 		<>
 			<h1 className="px-32 text-2xl">Popular Products</h1>
-			<div className="mx-64 my-auto flex w-lg flex-col">
-				<div className="grid grid-cols-4 place-items-center gap-6 gap-x-96 py-3">
+			<div className="my-auto w-full px-12">
+				<div className="grid 2xl:grid-cols-4 md:grid-cols-2 place-items-center gap-2 gap-y-6 py-4">
 					{items.map((item) => (
 						<ItemObj
 							key={Math.random() * 1000}
@@ -19,6 +21,7 @@ export const ItemList = ({ items }: ItemListProp) => {
 							price={item.price}
 							quantity={item.quantity}
 							image={item.image || ""}
+							setLength={setLength}
 						></ItemObj>
 					))}
 				</div>

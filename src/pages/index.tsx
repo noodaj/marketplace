@@ -4,12 +4,24 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Header } from "../components/header";
 import { ItemList } from "../components/itemList";
+import { env } from "../env/client.mjs";
 import { trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
 	const getItems = trpc.items.getAllItems.useQuery();
+	const utils = trpc.useContext();
 	const [items, setItems] = useState<Item[]>([]);
+	const [length, setLength] = useState<number>(0);
 	const { data: session } = useSession();
+
+	trpc.cart.getCart.useQuery(
+		{ cartID: session?.userID ?? env.NEXT_PUBLIC_DEFAULT_USER },
+		{
+			onSuccess(data) {
+				setLength(data!.length);
+			},
+		}
+	);
 
 	//useEffect when doing fetch requests is usually finished after the rendering of the ui
 	//dependency array uses the data queried to set the items and to rerender the ui
@@ -29,19 +41,10 @@ const Home: NextPage = () => {
 			</header>
 
 			<main className="base">
-				{session && (
-					<div>
-						<Header
-						/>
-						<ItemList items={items}></ItemList>
-					</div>
-				)}
-				{!session && (
-					<div>
-						<Header />
-						<ItemList items={items}></ItemList>
-					</div>
-				)}
+				<div>
+					<Header itemCount={length} />
+					<ItemList items={items} setLength={setLength}></ItemList>
+				</div>
 			</main>
 		</>
 	);

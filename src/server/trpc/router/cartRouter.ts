@@ -18,25 +18,31 @@ export const CartRouter = router({
 			//return the cart
 			const { itemID, quantity, uID } = input;
 			const item = await ctx.prisma.shoppingCart.findFirst({
-				where: {AND: [{userID: uID}, {items: {some: {itemID: itemID}}}]},
-				include: {items: {where: {itemID: itemID}}}
-			})
+				where: {
+					AND: [
+						{ userID: uID },
+						{ items: { some: { itemID: itemID } } },
+					],
+				},
+				include: { items: { where: { itemID: itemID } } },
+			});
 
 			if (item) {
-				
 				await ctx.prisma.shoppingCart.update({
 					where: { userID: uID },
 					data: {
 						items: {
 							update: {
 								where: { id: item.items[0]?.id },
-								data: { quantity: item.items[0]!.quantity + quantity},
+								data: {
+									quantity:
+										item.items[0]!.quantity + quantity,
+								},
 							},
 						},
 					},
-					include: {items: true}
+					include: { items: true },
 				});
-				
 			} else {
 				await ctx.prisma.shoppingCart.update({
 					where: { userID: uID },
@@ -51,10 +57,10 @@ export const CartRouter = router({
 					include: { items: true },
 				});
 			}
-			
+
 			return ctx.prisma.shoppingCart.findFirst({
 				where: { userID: uID },
-				include: { items: true },
+				include: { items: { include: { item: true } } },
 			});
 		}),
 
@@ -82,13 +88,52 @@ export const CartRouter = router({
 		}),
 
 	deleteItem: publicProcedure
-		.input(z.object({ itemID: z.string(), cartID: z.string() }))
+		.input(z.object({ itemID: z.string(), uID: z.string() }))
 		.mutation(async ({ input, ctx }) => {
-			const { itemID, cartID } = input;
-			const cart = await ctx.prisma.shoppingCart.update({
-				where: { userID: cartID },
-				data: { items: { disconnect: { id: itemID } } },
+			const { itemID, uID } = input;
+			const item = await ctx.prisma.shoppingCart.findFirst({
+				where: { userID: uID },
+				select: { items: { where: { itemID: itemID } } },
 			});
+
+			const cart = await ctx.prisma.shoppingCart.update({
+				where: { userID: uID },
+				data: { items: { disconnect: { id: item?.items[0]?.id } } },
+				include: { items: { include: { item: true } } },
+			});
+
+			return cart;
+		}),
+
+	updateItemCount: publicProcedure
+		.input(
+			z.object({
+				uID: z.string(),
+				itemID: z.string(),
+				quantity: z.number(),
+			})
+		)
+		.mutation(async ({ input, ctx }) => {
+			const { itemID, quantity, uID } = input;
+			const item = await ctx.prisma.shoppingCart.findFirst({
+				where: { userID: uID },
+				select: { items: { where: { itemID: itemID } } },
+			});
+			
+			const cart = await ctx.prisma.shoppingCart.update({
+				where: { userID: uID },
+				data: {
+					items: {
+						update: {
+							where: { id: item?.items[0]?.id },
+							data: { quantity: quantity },
+						},
+					},
+				},
+				include: { items: { include: { item: true } } },
+			});
+
+			console.log(cart)
 			return cart;
 		}),
 });
