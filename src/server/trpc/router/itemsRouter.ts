@@ -1,12 +1,10 @@
-import { contextProps } from "@trpc/react-query/dist/internals/context";
 import { z } from "zod";
-import { trpc } from "../../../utils/trpc";
-import { router, publicProcedure } from "../trpc";
+import { adminProcedure, publicProcedure, router } from "../trpc";
 
 //input is created from z object passing in the name price and quantity
 //then we call mutation passing in the object and create it in the db
 export const ItemsRouter = router({
-	addItems: publicProcedure
+	addItems: adminProcedure
 		.input(
 			z.object({
 				name: z.string(),
@@ -17,7 +15,7 @@ export const ItemsRouter = router({
 		)
 		.mutation(async ({ input, ctx }) => {
 			const { name, price, image, quantity } = input;
-			const item = await ctx.prisma.item.create({
+			await ctx.prisma.item.create({
 				data: {
 					name,
 					price,
@@ -25,7 +23,9 @@ export const ItemsRouter = router({
 					image,
 				},
 			});
-			return item;
+
+			const items = await ctx.prisma.item.findMany()
+			return items
 		}),
 
 	getAllItems: publicProcedure.query(async ({ ctx }) => {
@@ -42,23 +42,25 @@ export const ItemsRouter = router({
 					id: itemID,
 				},
 				data: {
-					quantity: total
+					quantity: total,
 				},
 			});
 			return item;
 		}),
 
-	deleteItem: publicProcedure
+	deleteItem: adminProcedure
 		.input(z.object({ itemID: z.string() }))
 		.mutation(async ({ input, ctx }) => {
 			const { itemID } = input;
-			const item = await ctx.prisma.item.delete({
+			await ctx.prisma.item.delete({
 				where: { id: itemID },
 			});
-			return item;
+
+			const allItems = await ctx.prisma.item.findMany();
+			return allItems;
 		}),
 
-	editItem: publicProcedure
+	editItem: adminProcedure
 		.input(
 			z.object({
 				itemID: z.string(),
@@ -70,7 +72,7 @@ export const ItemsRouter = router({
 		)
 		.mutation(async ({ input, ctx }) => {
 			const { itemID, name, price, quantity, image } = input;
-			const item = await ctx.prisma.item.update({
+			await ctx.prisma.item.update({
 				where: {
 					id: itemID,
 				},
@@ -81,7 +83,8 @@ export const ItemsRouter = router({
 					image: image,
 				},
 			});
-			return item;
+			const items = await ctx.prisma.item.findMany();
+			return items;
 		}),
 
 	getItem: publicProcedure

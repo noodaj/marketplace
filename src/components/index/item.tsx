@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { Dispatch, FC, SetStateAction, useRef, useState } from "react";
-import { env } from "../env/client.mjs";
-import { trpc } from "../utils/trpc";
+import { env } from "../../env/client.mjs";
+import { trpc } from "../../utils/trpc";
 
 type Props = {
 	id: string;

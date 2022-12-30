@@ -3,12 +3,12 @@ import Link from "next/link";
 import { FC, useState } from "react";
 
 type Props = {
-	itemCount: number
-}
-export const Header: FC<Props> = ({itemCount}) => {
+	itemCount: number;
+};
+export const Header: FC<Props> = ({ itemCount }) => {
 	const { data: session } = useSession();
 	const [showDropdown, setDropdown] = useState<boolean>(false);
-	
+
 	return (
 		<>
 			<div className="relative px-32">
@@ -54,11 +54,18 @@ export const Header: FC<Props> = ({itemCount}) => {
 										></img>
 									</div>
 									{showDropdown && (
-										<div
-											className="absolute right-28 my-12 flex h-14 items-center rounded-md bg-sky-400 p-3 hover:cursor-pointer"
-											onClick={() => signOut()}
-										>
-											Logout
+										<div className="absolute right-28 my-12 flex h-14 flex-col justify-center rounded-md bg-sky-400 p-3">
+											{session.role === "ADMIN" && (
+												<Link href={"/admin"}>
+													Admin Dashboard
+												</Link>
+											)}
+											<div
+												className="hover:cursor-pointer"
+												onClick={() => signOut()}
+											>
+												Logout
+											</div>
 										</div>
 									)}
 								</div>
@@ -81,7 +88,7 @@ export const Header: FC<Props> = ({itemCount}) => {
 									</div>
 								</div>
 								<div className="flex flex-row gap-5">
-									<Link href="/createAcct">
+									<Link href="/signUp">
 										<button
 											type="button"
 											className="rounded-lg bg-blue-400 p-2 px-5 text-white"
@@ -89,7 +96,7 @@ export const Header: FC<Props> = ({itemCount}) => {
 											Sign Up
 										</button>
 									</Link>
-									<Link href="/signin">
+									<Link href="/signIn">
 										<button
 											type="button"
 											className="rounded-lg bg-blue-500 p-2 px-5 text-white"

@@ -1,3 +1,4 @@
+import { Item, ItemQuantity } from "@prisma/client";
 import { NextPage } from "next";
 import { useSession } from "next-auth/react";
 import { useRef, useState } from "react";
@@ -27,7 +28,7 @@ const ShoppingCart: NextPage = () => {
 		{
 			onSuccess(data) {
 				setCartLength(data!.length);
-				getTotal(data)
+				getTotal(data!);
 			},
 		}
 	);
@@ -74,7 +75,11 @@ const ShoppingCart: NextPage = () => {
 		);
 	};
 
-	const getTotal = (data: any) => {
+	const getTotal = (
+		data: (ItemQuantity & {
+			item: Item | null;
+		})[]
+	) => {
 		let itemTotal = 0;
 		data?.forEach((item) => {
 			itemTotal += item.item!.price * item.quantity;
@@ -83,8 +88,7 @@ const ShoppingCart: NextPage = () => {
 		let tax = itemTotal * 0.0875;
 		let total = itemTotal + Number(tax) + (checked ? 10 : 0);
 
-		console.log({itemTotal,tax, total})
-		setTotal({itemTotal: itemTotal, tax: tax, overall: total})
+		setTotal({ itemTotal: itemTotal, tax: tax, overall: total });
 	};
 
 	return (
@@ -125,7 +129,7 @@ const ShoppingCart: NextPage = () => {
 													ref={quantityRef}
 													onChange={() => {
 														update(item.itemID!);
-														getTotal();
+														getTotal(cart.data!);
 													}}
 												></input>
 											</div>
@@ -133,7 +137,7 @@ const ShoppingCart: NextPage = () => {
 												className="text-2xl hover:cursor-pointer "
 												onClick={() => {
 													deleteFn(item.itemID!);
-													getTotal();
+													getTotal(cart.data!);
 												}}
 											/>
 										</div>
@@ -169,11 +173,11 @@ const ShoppingCart: NextPage = () => {
 										</div>
 										<div className="paymentText">
 											<p>Tax</p>
-											{`$${(total.tax).toFixed(2)}`}
+											{`$${total.tax.toFixed(2)}`}
 										</div>
 										<div className="paymentText">
 											<p>Total</p>
-											{`$${(total.overall).toFixed(2)}`}
+											{`$${total.overall.toFixed(2)}`}
 										</div>
 									</div>
 								</div>

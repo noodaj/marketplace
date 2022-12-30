@@ -45,6 +45,12 @@ model User {
     name          String?
     userName      String?       @unique
     password      String        @default("")        
-    image         String?      
+    image         String?
     cart          ShoppingCart?
+    role          Role        @default(USER)
+}
+
+enum Role{
+    USER 
+    ADMIN
 }

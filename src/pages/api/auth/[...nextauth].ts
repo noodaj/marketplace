@@ -15,6 +15,7 @@ export const authOptions: NextAuthOptions = {
 			session.userID = token.user.id;
 			session.user!.name = token.user.name;
 			session.user!.image = token.user.image;
+			session.role = token.user.role
 			return session;
 		},
 
@@ -29,7 +30,7 @@ export const authOptions: NextAuthOptions = {
 		Credentials({
 			type: "credentials",
 			credentials: {},
-			async authorize(credentials, req) {
+			async authorize(credentials) {
 				const { username, password } = credentials as {
 					username: string;
 					password: string;

@@ -102,6 +102,15 @@ export const CartRouter = router({
 				include: { items: { include: { item: true } } },
 			});
 
+			await ctx.prisma.item.update({
+				where: { id: item?.items[0]?.itemID! },
+				data: { quantity: { increment: item?.items[0]?.quantity } },
+			});
+
+			await ctx.prisma.itemQuantity.delete({
+				where: { id: item?.items[0]?.id },
+			});
+
 			return cart;
 		}),
 
@@ -119,7 +128,7 @@ export const CartRouter = router({
 				where: { userID: uID },
 				select: { items: { where: { itemID: itemID } } },
 			});
-			
+
 			const cart = await ctx.prisma.shoppingCart.update({
 				where: { userID: uID },
 				data: {
@@ -133,7 +142,6 @@ export const CartRouter = router({
 				include: { items: { include: { item: true } } },
 			});
 
-			console.log(cart)
 			return cart;
 		}),
 });

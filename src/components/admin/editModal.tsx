@@ -1,46 +1,41 @@
 import { Item } from "@prisma/client";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { trpc } from "../utils/trpc";
+import { Dispatch, FC, SetStateAction, useRef } from "react";
+import { trpc } from "../../utils/trpc";
 
 type ModalProps = {
 	setState: Dispatch<SetStateAction<boolean>>;
 	setItems: Dispatch<SetStateAction<Item[]>>;
-	items: Item[];
 	item: Item;
 };
 
-export const EditModal = (props: ModalProps) => {
-	//fix rerender when item has been updated 
-	
-	const { setState, item, setItems, items} = props;
-	const [propState, setPropState] = useState<ModalProps>(props);
-
-	const editItemRouter = trpc.items.editItem.useMutation({
-		onSuccess(data) {
-			setItems((prev) => prev.filter((old) => old.id !== item.id));
-			//setItems([...items, data])
-		},
-	});
+export const EditModal: FC<ModalProps> = ({
+	setState,
+	item,
+	setItems,
+}: ModalProps) => {
+	const editItemRouter = trpc.items.editItem.useMutation();
 
 	const itemName = useRef<HTMLInputElement>(null);
 	const itemPrice = useRef<HTMLInputElement>(null);
 	const itemQuantity = useRef<HTMLInputElement>(null);
 	const itemImage = useRef<HTMLInputElement>(null);
 
-	useEffect(() => {
-		console.log('changed')
-		setPropState(props);
-		setItems(items)
-	}, [props]);
-
 	const editItem = () => {
-		editItemRouter.mutate({
-			itemID: item.id,
-			name: itemName.current?.value || item.name,
-			price: Number(itemPrice.current?.value) || item.price!,
-			quantity: Number(itemQuantity.current?.value) || item.quantity,
-			image: itemImage.current?.value || item.image!,
-		});
+		editItemRouter.mutate(
+			{
+				itemID: item.id,
+				name: itemName.current?.value || item.name,
+				price: Number(itemPrice.current?.value) || item.price!,
+				quantity: Number(itemQuantity.current?.value) || item.quantity,
+				image: itemImage.current?.value || item.image!,
+			},
+			{
+				onSuccess(data) {
+					setItems(data);
+					setState(false);
+				},
+			}
+		);
 	};
 
 	return (
@@ -86,7 +81,6 @@ export const EditModal = (props: ModalProps) => {
 						className="rounded-md bg-violet-400 p-1 font-semibold"
 						onClick={() => {
 							editItem();
-							setState(false);
 						}}
 					>
 						Update

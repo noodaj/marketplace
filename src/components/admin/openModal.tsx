@@ -1,27 +1,35 @@
 import { Item } from "@prisma/client";
 import { Dispatch, MutableRefObject, SetStateAction, useRef } from "react";
-import { trpc } from "../utils/trpc";
+import { trpc } from "../../utils/trpc";
 
 type ModalProps = {
 	setState: Dispatch<SetStateAction<boolean>>;
+	setItems: Dispatch<SetStateAction<Item[]>>;
 };
 
-export const OpenModal = ({ setState}: ModalProps) => {
-	const addItemRouter = trpc.items.addItems.useMutation({
-	});
-	
+export const OpenModal = ({ setState, setItems }: ModalProps) => {
+	const addItems = trpc.items.addItems.useMutation()
 	const itemName = useRef() as MutableRefObject<HTMLInputElement>;
 	const itemPrice = useRef<HTMLInputElement>(null);
 	const itemQuantity = useRef<HTMLInputElement>(null);
-	const itemImage = useRef() as MutableRefObject<HTMLInputElement>;
+	const itemImage = useRef<HTMLInputElement>(null);
 
 	const addItem = () => {
-		addItemRouter.mutate({
-			name: itemName.current?.value,
-			price: Number(itemPrice.current?.value),
-			quantity: Number(itemQuantity.current?.value),
-			image: itemImage.current?.value,
-		});
+		console.log(itemImage.current?.value)
+		addItems.mutate(
+			{
+				name: itemName.current?.value,
+				price: Number(itemPrice.current?.value),
+				quantity: Number(itemQuantity.current?.value),
+				image: itemImage.current?.value === undefined? itemImage.current!.value : "https://i.imgur.com/dfbEri3.png",
+			},
+			{
+				onSuccess(data) {
+					setItems(data);
+					setState(false);
+				},
+			}
+		);
 	};
 
 	return (
@@ -67,7 +75,6 @@ export const OpenModal = ({ setState}: ModalProps) => {
 						className="rounded-md bg-violet-400 p-1 font-semibold"
 						onClick={() => {
 							addItem();
-							setState(false);
 						}}
 					>
 						Add

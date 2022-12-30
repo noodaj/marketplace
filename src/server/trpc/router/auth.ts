@@ -1,12 +1,17 @@
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { z } from "zod";
-import { router, publicProcedure, protectedProcedure } from "../trpc";
+import {
+	router,
+	publicProcedure,
+	protectedProcedure,
+	adminProcedure,
+} from "../trpc";
 import * as trpc from "@trpc/server";
 export const authRouter = router({
 	getSession: publicProcedure.query(({ ctx }) => {
 		return ctx.session;
 	}),
-	
+
 	getSecretMessage: protectedProcedure.query(() => {
 		return "you can now see this secret message!";
 	}),
@@ -40,16 +45,20 @@ export const authRouter = router({
 				});
 			}
 		}),
-	/*
-	getUser: publicProcedure.input(z.object({username: z.string(), password: z.string()})).query(async ({ctx,input}) => {
-		const {username, password} = input
-		const user = await ctx.prisma.user.findUnique({where: {userName: username}})
-		if(user !== null){
-			if(user?.password === password){
-				return {success: true, user}
-			}
-		}
-		return {success: false, user}
-	})\
-	*/
+
+	updateRole: adminProcedure
+		.input(
+			z.object({ userID: z.string(), role: z.enum(["ADMIN", "USER"]) })
+		)
+		.mutation(async ({ input, ctx }) => {
+			const { userID, role } = input;
+			await ctx.prisma.user.update({
+				where: { id: userID },
+				data: { role: role },
+			});
+		}),
+
+	getUsers: adminProcedure.query(async ({ ctx }) => {
+		return await ctx.prisma.user.findMany({select: {userName: true, id: true, role: true}});
+	}),
 });
