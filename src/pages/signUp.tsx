@@ -1,15 +1,9 @@
 import { NextPage } from "next";
-import { useSession } from "next-auth/react";
-import Router from "next/router";
+import { signIn, useSession } from "next-auth/react";
 import { FormEvent, useRef, useState } from "react";
 import { Header } from "../components/header";
 import { env } from "../env/client.mjs";
 import { trpc } from "../utils/trpc";
-
-type curItemObj = {
-	itemID: string | null;
-	quantity: number;
-};
 
 const CreateAcct: NextPage = () => {
 	const { data: session } = useSession();
@@ -17,27 +11,28 @@ const CreateAcct: NextPage = () => {
 	const password = useRef<HTMLInputElement>(null);
 	const name = useRef<HTMLInputElement>(null);
 	const [errorModal, setErrorModal] = useState<boolean>(false);
-	const [items, setItems] = useState<curItemObj[] | undefined>([]);
+	const [items, setItems] = useState<{ itemID: string; quantity: number}[]>(
+		[]
+	);
 	const createMutation = trpc.auth.createUser.useMutation();
 
 	trpc.cart.getCart.useQuery(
 		{ cartID: session?.userID ?? env.NEXT_PUBLIC_DEFAULT_USER },
 		{
 			onSuccess(data) {
-				const curData = data?.map((item) => {
-					const { itemID, quantity } = item;
-					const test: curItemObj = {
-						itemID: itemID,
-						quantity: quantity,
-					};
-					return test;
+				const curData = data?.map(({ itemID, quantity }) => {
+					if(itemID == null){
+						return { itemID: "", quantity}
+					}
+					return { itemID, quantity };
 				});
 
-				setItems(curData);
+				if(curData != undefined)
+					setItems(curData)
 			},
 		}
 	);
-
+	
 	const createUser = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
@@ -50,10 +45,16 @@ const CreateAcct: NextPage = () => {
 			},
 			{
 				onError(error) {
-					console.log(error.data?.stack);
+					setErrorModal(true);
+					console.log(error.data);
 				},
 				onSuccess() {
-					Router.push("/");
+					signIn("credentials", {
+						username: userName.current?.value,
+						password: password.current?.value,
+						redirect: true,
+						callbackUrl: "/",
+					});
 				},
 			}
 		);
@@ -72,7 +73,7 @@ const CreateAcct: NextPage = () => {
 				}
 			></Header>
 			<form
-				className="m-auto flex max-w-sm flex-col items-center rounded-md bg-stone-200 p-10"
+				className="m-auto flex max-w-sm flex-col items-center rounded-md bg-stone-200 p-10 text-left"
 				onSubmit={(e) => createUser(e)}
 			>
 				{errorModal && <p>Hello</p>}

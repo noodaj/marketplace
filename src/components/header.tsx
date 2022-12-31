@@ -17,12 +17,6 @@ export const Header: FC<Props> = ({ itemCount }) => {
 						<Link href="/">
 							<h3>Clothing</h3>
 						</Link>
-						<Link href="/">
-							<h3>New</h3>
-						</Link>
-						<Link href="/">
-							<h3>Special Offers</h3>
-						</Link>
 					</div>
 					<div className="flex flex-row">
 						{session ? (

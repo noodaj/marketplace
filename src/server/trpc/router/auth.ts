@@ -1,13 +1,12 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
-import { z } from "zod";
-import {
-	router,
-	publicProcedure,
-	protectedProcedure,
-	adminProcedure,
-} from "../trpc";
-import * as trpc from "@trpc/server";
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { env } from "../../../env/client.mjs";
+import {
+	adminProcedure,
+	protectedProcedure,
+	publicProcedure,
+	router,
+} from "../trpc";
 export const authRouter = router({
 	getSession: publicProcedure.query(({ ctx }) => {
 		return ctx.session;
@@ -43,7 +42,7 @@ export const authRouter = router({
 					message: "User already exists",
 				});
 			}
-			const user = await ctx.prisma.user.create({
+			await ctx.prisma.user.create({
 				data: {
 					userName: username,
 					name: name,
@@ -56,12 +55,16 @@ export const authRouter = router({
 						},
 					},
 				},
-				include: {
-					cart: { include: { items: { include: { item: true } } } },
-				},
 			});
 
-			console.log(user);
+			await ctx.prisma.shoppingCart.update({
+				where: { userID: env.NEXT_PUBLIC_DEFAULT_USER },
+				data: {
+					items: {
+						deleteMany: {}
+					}
+				}
+			});
 		}),
 
 	updateRole: adminProcedure

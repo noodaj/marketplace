@@ -15,5 +15,5 @@
 }
 
 .paymentInput{
-	@apply outline-none rounded-md text-black placeholder-yellow-500 
+	@apply outline-none rounded-md text-black placeholder-yellow-500 ml-2 
 }
