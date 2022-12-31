@@ -11,11 +11,6 @@ export const CartRouter = router({
 			})
 		)
 		.mutation(async ({ input, ctx }) => {
-			//get the cartID which is the same as the userID
-			//then we can find the cart with this uniqueID
-			//if it doesnt exist we will create a new cart with the userID passed in and connect the itemID to this cart
-			//if it exists we will just connect the item to the cart
-			//return the cart
 			const { itemID, quantity, uID } = input;
 			const item = await ctx.prisma.shoppingCart.findFirst({
 				where: {
@@ -77,14 +72,19 @@ export const CartRouter = router({
 		}),
 
 	deleteCart: publicProcedure
-		.input(z.object({ cartID: z.string() }))
+		.input(z.object({ uID: z.string() }))
 		.mutation(async ({ input, ctx }) => {
-			const { cartID } = input;
-			const cart = await ctx.prisma.shoppingCart.delete({
-				where: { userID: cartID },
+			const { uID } = input;
+			const cartID = await ctx.prisma.shoppingCart.findFirst({
+				where: { userID: uID },
+				select: { id: true },
 			});
 
-			return cart;
+			await ctx.prisma.shoppingCart.update({
+				where: { userID: uID },
+				data: { items: { deleteMany: { shoppingCartId: cartID?.id } } },
+				include: { items: true },
+			});
 		}),
 
 	deleteItem: publicProcedure

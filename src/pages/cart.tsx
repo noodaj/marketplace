@@ -3,22 +3,31 @@ import { NextPage } from "next";
 import { useSession } from "next-auth/react";
 import { useRef, useState } from "react";
 import { HiOutlineTrash } from "react-icons/hi";
+import { Delivery } from "../components/cart/delivery";
 import { Header } from "../components/header";
 import { env } from "../env/client.mjs";
 import { trpc } from "../utils/trpc";
 
+type totalObj = {
+	tax: number;
+	itemTotal: number;
+	overall: number;
+};
 const ShoppingCart: NextPage = () => {
 	const deleteItem = trpc.cart.deleteItem.useMutation();
 	const updateItem = trpc.cart.updateItemCount.useMutation();
+	const deleteCart = trpc.cart.deleteCart.useMutation();
+
 	const utils = trpc.useContext();
 	const { data: session } = useSession();
+
 	const [checked, setChecked] = useState<boolean>(false);
 	const [cartLength, setCartLength] = useState<number>(0);
-	const [total, setTotal] = useState<{
-		tax: number;
-		itemTotal: number;
-		overall: number;
-	}>({ itemTotal: 0, overall: 0, tax: 0 });
+	const [total, setTotal] = useState<totalObj>({
+		itemTotal: 0,
+		overall: 0,
+		tax: 0,
+	});
 	const quantityRef = useRef<HTMLInputElement>(null);
 
 	const cart = trpc.cart.getCart.useQuery(
@@ -91,6 +100,24 @@ const ShoppingCart: NextPage = () => {
 		setTotal({ itemTotal: itemTotal, tax: tax, overall: total });
 	};
 
+	const orderProducts = () => {
+		console.log("ordering");
+		deleteCart.mutate(
+			{ uID: session?.userID ?? env.NEXT_PUBLIC_DEFAULT_USER },
+			{
+				onSuccess() {
+					utils.cart.getCart.setData(
+						{
+							cartID:
+								session?.userID ?? env.NEXT_PUBLIC_DEFAULT_USER,
+						},
+						[]
+					);
+					setCartLength(0);
+				},
+			}
+		);
+	};
 	return (
 		<>
 			<header>
@@ -165,7 +192,7 @@ const ShoppingCart: NextPage = () => {
 									<div className="flex flex-col gap-2">
 										<div className="paymentText">
 											<p>Order Summary</p>
-											{`$${total.itemTotal}`}
+											{`$${total.itemTotal.toFixed(2)}`}
 										</div>
 										<div className="paymentText">
 											<p>Additional Services</p>
@@ -202,21 +229,20 @@ const ShoppingCart: NextPage = () => {
 								</div>
 							</div>
 						</div>
-						<div className="col-span-2  text-xl">
-							Delivery
-							<div className="grid grid-cols-2">
-								<div>
-									<p className="text-base">
-										FedEx Fast Delivery
-									</p>
-								</div>
-								<div>
-									<p className="text-base">UPS Delivery</p>
-								</div>
-							</div>
-						</div>
-						<div className="col-span-3 text-xl">Payment</div>
+						<Delivery />
 					</div>
+				</div>
+				<div className="flex flex-col items-center absolute bottom-10 right-10">
+					<button
+						className="rounded bg-slate-500 p-3 disabled:text-red-500 disabled:line-through"
+						onClick={() => {
+							orderProducts();
+						}}
+						disabled={cartLength <= 0 || !session}
+					>
+						Purchase Order
+					</button>
+					{!session && <p className="">You must create an account to purchase</p>}
 				</div>
 			</div>
 		</>

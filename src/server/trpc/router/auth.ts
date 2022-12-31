@@ -7,6 +7,7 @@ import {
 	adminProcedure,
 } from "../trpc";
 import * as trpc from "@trpc/server";
+import { TRPCError } from "@trpc/server";
 export const authRouter = router({
 	getSession: publicProcedure.query(({ ctx }) => {
 		return ctx.session;
@@ -19,31 +20,48 @@ export const authRouter = router({
 	createUser: publicProcedure
 		.input(
 			z.object({
-				username: z.string().optional(),
-				email: z.string().optional(),
+				name: z.string(),
+				username: z.string(),
 				password: z.string().min(6),
+				items: z.array(
+					z.object({
+						itemID: z.string(),
+						quantity: z.number(),
+					})
+				),
 			})
 		)
 		.mutation(async ({ input, ctx }) => {
-			const { username, password, email } = input;
-			try {
-				const user = await ctx.prisma.user.create({
-					data: { userName: username, password: password },
-				});
-				return user;
-			} catch (e) {
-				if (e instanceof PrismaClientKnownRequestError) {
-					throw new trpc.TRPCError({
-						code: "CONFLICT",
-						message: "User already exists",
-					});
-				}
+			const { username, password, name, items: data } = input;
+			const existing = await ctx.prisma.user.findFirst({
+				where: { userName: username },
+			});
 
-				throw new trpc.TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Something went wrong",
+			if (existing) {
+				throw new TRPCError({
+					code: "CONFLICT",
+					message: "User already exists",
 				});
 			}
+			const user = await ctx.prisma.user.create({
+				data: {
+					userName: username,
+					name: name,
+					password: password,
+					image: "https://i.imgur.com/7kwZ0na.png",
+					role: "USER",
+					cart: {
+						create: {
+							items: { createMany: { data } },
+						},
+					},
+				},
+				include: {
+					cart: { include: { items: { include: { item: true } } } },
+				},
+			});
+
+			console.log(user);
 		}),
 
 	updateRole: adminProcedure
@@ -59,6 +77,8 @@ export const authRouter = router({
 		}),
 
 	getUsers: adminProcedure.query(async ({ ctx }) => {
-		return await ctx.prisma.user.findMany({select: {userName: true, id: true, role: true}});
+		return await ctx.prisma.user.findMany({
+			select: { userName: true, id: true, role: true },
+		});
 	}),
 });

@@ -45,8 +45,7 @@ export const Header: FC<Props> = ({ itemCount }) => {
 										<img
 											className="h-10 w-10 rounded-full "
 											src={
-												session.user?.image ||
-												"/profilePic.png"
+												session.user?.image!
 											}
 											onClick={() =>
 												setDropdown(!showDropdown)

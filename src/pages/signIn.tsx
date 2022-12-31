@@ -19,7 +19,7 @@ const SignIn: NextPage = () => {
 			callbackUrl: "/",
 		});
 
-		if (user?.error == "CredentialsSignin") {
+		if (user?.error === "CredentialsSignin") {
 			showInvalidCred(true);
 		} else {
 			Router.push("/");

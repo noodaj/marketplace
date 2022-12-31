@@ -13,3 +13,7 @@
 .paymentText {
 	@apply flex justify-between text-yellow-500 text-sm;
 }
+
+.paymentInput{
+	@apply outline-none rounded-md text-black placeholder-yellow-500 
+}
